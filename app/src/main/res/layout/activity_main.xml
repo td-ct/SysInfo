@@ -66,6 +66,15 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
+        android:id="@+id/btnSelfie"
+        android:text="Selfie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMain" />
+
+    <Button
         android:id="@+id/btnMain"
         android:text="Hauptkamera (1x)"
         android:layout_width="wrap_content"

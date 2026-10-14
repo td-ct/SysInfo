@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageCapture imageCapture;
     private float minZoom = 1f;
     private float maxZoom = 1f;
+    private int currentFacing = CameraSelector.LENS_FACING_BACK;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnDiagnose).setOnClickListener(v -> runDiagnosis());
         findViewById(R.id.btnWide).setOnClickListener(v -> switchToWide());
         findViewById(R.id.btnMain).setOnClickListener(v -> switchToMain());
+        findViewById(R.id.btnSelfie).setOnClickListener(v -> switchCamera());
         findViewById(R.id.btnCapture).setOnClickListener(v -> takePhoto());
 
         zoomBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -94,11 +96,18 @@ public class MainActivity extends AppCompatActivity {
                 int[] caps = c.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
                 Range<Float> zoomRange = c.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
                 Integer cfaBox = c.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+                boolean depthCapTop = caps != null && contains(caps,
+                        CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT);
+                boolean logicalMulti = caps != null && contains(caps,
+                        CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_LOGICAL_MULTI_CAMERA);
                 String msg = "ID=" + id
                         + " facing=" + facingName(facing)
                         + "\n  caps=" + Arrays.toString(caps)
+                        + (logicalMulti ? " [LOGICAL_MULTI_CAMERA]" : "")
+                        + (depthCapTop ? " [DEPTH_OUTPUT]" : "")
                         + "\n  zoomRange=" + (zoomRange != null ? zoomRange.toString() : "n/a")
                         + "\n  physical=" + c.getPhysicalCameraIds()
+                        + "\n  concurrent=" + cm.getConcurrentCameraIds()
                         + "\n  CFA=" + (cfaBox != null ? cfaName(cfaBox) : "n/a")
                         + "\n  focal=" + c.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
                 Log.i(TAG, msg);
@@ -159,6 +168,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
+        startCamera(currentFacing);
+    }
+
+    private void startCamera(int lensFacing) {
         ListenableFuture<ProcessCameraProvider> future = ProcessCameraProvider.getInstance(this);
         future.addListener(() -> {
             try {
@@ -169,15 +182,16 @@ public class MainActivity extends AppCompatActivity {
                 imageCapture = new ImageCapture.Builder().build();
 
                 CameraSelector selector = new CameraSelector.Builder()
-                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                        .requireLensFacing(lensFacing)
                         .build();
 
                 provider.unbindAll();
                 camera = provider.bindToLifecycle(this, selector, preview, imageCapture);
                 control = camera.getCameraControl();
 
-                readZoomRange();
-                Log.i(TAG, "Kamera gestartet, zoomRange=[" + minZoom + "," + maxZoom + "]");
+                readZoomRange(lensFacing);
+                Log.i(TAG, "Kamera gestartet (facing=" + lensFacing
+                        + "), zoomRange=[" + minZoom + "," + maxZoom + "]");
             } catch (Exception e) {
                 Log.e(TAG, "Kamera-Start fehlgeschlagen", e);
                 Toast.makeText(this, "Kamera-Start fehlgeschlagen", Toast.LENGTH_LONG).show();
@@ -185,14 +199,19 @@ public class MainActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void readZoomRange() {
+    private void switchCamera() {
+        currentFacing = (currentFacing == CameraSelector.LENS_FACING_BACK)
+                ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK;
+        startCamera(currentFacing);
+    }
+
+    private void readZoomRange(int lensFacing) {
         try {
             CameraManager cm = getSystemService(CameraManager.class);
             for (String id : cm.getCameraIdList()) {
                 CameraCharacteristics ch = cm.getCameraCharacteristics(id);
-                if (ch.get(CameraCharacteristics.LENS_FACING) != null
-                        && ch.get(CameraCharacteristics.LENS_FACING)
-                            == CameraCharacteristics.LENS_FACING_BACK) {
+                Integer f = ch.get(CameraCharacteristics.LENS_FACING);
+                if (f != null && f == lensFacing) {
                     Range<Float> zr = ch.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
                     if (zr != null) {
                         minZoom = zr.getLower();
@@ -211,6 +230,13 @@ public class MainActivity extends AppCompatActivity {
     private void switchToWide() {
         if (control == null) {
             Toast.makeText(this, "Kamera nicht bereit", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (minZoom >= 1.0f) {
+            Toast.makeText(this, "Kein Weitwinkel verfügbar: minZoom=1.0 — "
+                    + "Motorola exposes den Ultraweitwinkel nicht an Dritt-Apps "
+                    + "(weder Zoom<1.0 noch physische Kamera-ID)", Toast.LENGTH_LONG).show();
+            Log.w(TAG, "Weitwinkel nicht möglich: CONTROL_ZOOM_RATIO_RANGE beginnt bei " + minZoom);
             return;
         }
         float target = Math.min(0.6f, minZoom);

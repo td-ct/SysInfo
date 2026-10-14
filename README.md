@@ -28,3 +28,13 @@ unter der logischen Rückkamera meldet (mit `CFA=MONO` bzw. Capability `DEPTH_OU
 Tiefe gibt es in Drittanbieter-Apps nur über die **Tiefen-USB/Halbprofi-API** (unsupported) oder
 indirekt über die **Google Depth API** (`DEPTH16`-Daten im JPEG-XMP-Blob der Hauptkamera, wenn
 `REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT` vorhanden) bzw. **ARCore Depth** (stereo/bewegungsbasiert).
+
+## v1.1
+- **Selfie-Kamera-Umschaltung** (Button wechselt Front <-> Rück, Zoom-Range wird je Kamera neu gelesen)
+- Weitwinkel-Button: klare Meldung, falls nicht verfügbar (statt wirkungslosem Druck)
+- Diagnose erweitert: `[LOGICAL_MULTI_CAMERA]`/`[DEPTH_OUTPUT]`-Marker, `getConcurrentCameraIds()`
+
+## Diagnose-Ergebnis Moto G86 5G (Android 15)
+- zoomRange=[1.0, 10.0], physical=[], kein LOGICAL_MULTI_CAMERA
+- => Ultraweitwinkel (8 MP) ist für Dritt-Apps **nicht erreichbar** (weder Zoom<1.0 noch physische ID);
+   Motorola expose ihn nicht. Tiefensensor ebenfalls API-invisible (kein DEPTH_OUTPUT).
