@@ -38,3 +38,17 @@ indirekt über die **Google Depth API** (`DEPTH16`-Daten im JPEG-XMP-Blob der Ha
 - zoomRange=[1.0, 10.0], physical=[], kein LOGICAL_MULTI_CAMERA
 - => Ultraweitwinkel (8 MP) ist für Dritt-Apps **nicht erreichbar** (weder Zoom<1.0 noch physische ID);
    Motorola expose ihn nicht. Tiefensensor ebenfalls API-invisible (kein DEPTH_OUTPUT).
+
+## v1.2
+- **Menü oben rechts** (Overflow-Button):
+  - **Über** (erster Eintrag): Splash-Screen mit Version + GitHub-Link
+  - **Kamera-API** (Untermenü, umschaltbar, mit Häkchen):
+    - *CameraX (Standard)* — bisherige Vorschau/Aufnahme
+    - *Camera2 direkt (Java)* — eigene Preview-Pipeline ohne CameraX
+    - *Native/NDK-Sicht (Info)* — Ansicht, die live zeigt, dass die C++-NDK-
+      API dieselben IDs/Capabilities sieht (beide fragen denselben
+      Camera-Service ab; am G86 identisch: kein UW, keine physischen IDs)
+  - **Update** (letzter Eintrag): gleiche Logik wie TrailCam/Breakout —
+    GitHub-API-Abgleich der `releases/`-APKs mit installierter Version,
+    Download-Link bzw. Play-Store-Weiterleitung bei Play-Installation
+- API-Badge oben in der Preview zeigt die aktive Anbindung
