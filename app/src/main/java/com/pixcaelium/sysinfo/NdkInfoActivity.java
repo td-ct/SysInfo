@@ -10,11 +10,10 @@ import android.widget.TextView;
 import java.util.Arrays;
 
 /**
- *NDK-Sicht: Die C++-Camera2-NDK (ACameraManager/ACameraDevice) greift auf
- * denselben Camera-Service zu wie die Java-API — Kamera-IDs und Capabilities
- * sind zwingend identisch. Diese Ansicht liest die Werte live und dokumentiert
- * das Equivalenz-Ergebnis, damit man vor Ort sieht: ein API-Wechsel (Java ->
- * C++/Rust) aendert nichts am Kamera-Angebot des Geraets.
+ * Native/NDK-Ansicht: Fragt die KAMERAS wirklich ueber die C++-Camera2-NDK
+ * (ACameraManager, siehe native-camera-probe.cpp) ab und zeigt die Werte
+ * neben der Java-Sicht. Beide APIs fragen denselben Camera-Service ab —
+ * hier kann man live verifizieren, dass die Ergebnisse identisch sind.
  */
 public class NdkInfoActivity extends Activity {
 
@@ -26,10 +25,20 @@ public class NdkInfoActivity extends Activity {
 
         StringBuilder sb = new StringBuilder();
         sb.append("== API-Vergleich: Native (C++/NDK) vs. Java ==\n\n");
-        sb.append("Die Camera2-NDK (ACameraManager) und die Java-Camera2-\n")
-          .append("API fragen BEIDE denselben Android Camera-Service ab.\n")
-          .append("IDs, Capabilities, Zoom-Range sind daher identisch.\n\n");
-        sb.append("-- Aktuelle Werte (gelten fuer Java UND Native) --\n\n");
+
+        // 1) Echte NDK-Abfrage (ACameraManager, native lib sysinfo_ndk_probe)
+        String ndkReport = null;
+        try {
+            ndkReport = NativeCameraProbe.nativeCameraReport();
+            sb.append("--- C++ Camera2-NDK (ACameraManager) ---\n\n");
+            sb.append(ndkReport).append("\n\n");
+        } catch (UnsatisfiedLinkError e) {
+            sb.append("--- C++ Camera2-NDK ---\n\n")
+              .append("Native Bibliothek nicht ladbar: ").append(e.getMessage()).append("\n\n");
+        }
+
+        // 2) Java-Referenzwerte zum direkten Vergleich
+        sb.append("--- Java Camera2 (Referenz) ---\n\n");
         try {
             CameraManager cm = getSystemService(CameraManager.class);
             for (String id : cm.getCameraIdList()) {
@@ -46,9 +55,11 @@ public class NdkInfoActivity extends Activity {
         } catch (Exception e) {
             sb.append("Fehler beim Auslesen: ").append(e).append('\n');
         }
-        sb.append("Fazit G86: Weitwinkel & Tiefensensor sind nicht per\n")
-          .append("App-API freigegeben — unabhaengig von der Sprache.\n")
-          .append("Nur Root/HAL-Zugriff wuerde sie erreichen (unpraktikabel).");
+
+        sb.append("Erwartung: beide Abschnitte identisch — Java und Native\n")
+          .append("fragen denselben Camera-Service ab. Etwaige Abweichungen\n")
+          .append("waeren ein Firmware-Bug. Am G86 gilt fuer beide: kein\n")
+          .append("Weitwinkel, keine physischen IDs, kein DEPTH_OUTPUT.");
         text.setText(sb.toString());
     }
 }

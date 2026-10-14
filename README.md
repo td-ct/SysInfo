@@ -52,3 +52,15 @@ indirekt über die **Google Depth API** (`DEPTH16`-Daten im JPEG-XMP-Blob der Ha
     GitHub-API-Abgleich der `releases/`-APKs mit installierter Version,
     Download-Link bzw. Play-Store-Weiterleitung bei Play-Installation
 - API-Badge oben in der Preview zeigt die aktive Anbindung
+
+## v1.3
+- **Echte native Kamera-API integriert**: C++-Bibliothek `libsysinfo_ndk_probe`
+  (Camera2-NDK, ACameraManager) über JNI — die „Native/NDK"-Menüoption führt
+  jetzt eine **wirkliche native Abfrage** durch (nicht nur Java-Referenz) und
+  zeigt beide Ergebnisse direkt untereinander zum Vergleich
+- **API-Namen und -Versionen als Überschriften im Diagnose-Log**:
+  Android-Version/API-Level, Gerät, CameraX-Version (aus BuildConfig),
+  Camera2-Java (Plattform-API), Camera2-NDK (C++, NDK r26b + Live-Verfügbarkeit),
+  aktiver Modus — gefolgt vom Kamera-Abschnitt je ID
+- Umschaltung CameraX ↔ Camera2-Java bleibt echte Preview-Pipeline-Umschaltung;
+  NDK-Modus nutzt die native lib für die Geräteabfrage

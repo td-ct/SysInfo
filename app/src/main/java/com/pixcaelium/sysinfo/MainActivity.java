@@ -113,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
     private void runDiagnosis() {
         StringBuilder sb = new StringBuilder();
         try {
+            sb.append("========== API-VERSIONEN ==========\n\n");
+            sb.append(apiVersionsHeader());
+            sb.append("\n\n========== KAMERA-DIAGNOSE ==========\n\n");
             CameraManager cm = getSystemService(CameraManager.class);
             for (String id : cm.getCameraIdList()) {
                 CameraCharacteristics c = cm.getCameraCharacteristics(id);
@@ -161,6 +164,53 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Diagnose fehlgeschlagen", e);
             Toast.makeText(this, "Diagnose fehlgeschlagen: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String apiVersionsHeader() {
+        StringBuilder h = new StringBuilder();
+        // Android / Camera-HAL
+        h.append("Android: ").append(android.os.Build.VERSION.RELEASE)
+         .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\n");
+        h.append("Device: ").append(android.os.Build.MANUFACTURER)
+         .append(' ').append(android.os.Build.MODEL).append('\n');
+        // CameraX-Version aus den Abhaengigkeiten (Package-Metadaten)
+        String camerax = libVersion("androidx.camera:camera-core");
+        h.append("CameraX: ").append(camerax != null ? camerax : "unbekannt").append('\n');
+        h.append("Camera2 (Java): Plattform-API (Android ")
+         .append(android.os.Build.VERSION.RELEASE).append(")\n");
+        String ndk = nativeNdkVersion();
+        h.append("Camera2-NDK (C++): ").append(ndk).append('\n');
+        h.append("Aktiver Modus: ").append(apiName(currentApi)).append('\n');
+        return h.toString();
+    }
+
+    private static String apiName(int api) {
+        switch (api) {
+            case API_CAMERA2_JAVA: return "Camera2 direkt (Java)";
+            case API_NDK_INFO: return "Native/NDK";
+            default: return "CameraX";
+        }
+    }
+
+    private static String libVersion(String groupArtifact) {
+        // CameraX-Version steht in BuildConfig (buildConfigField siehe build.gradle)
+        try {
+            return (String) Class.forName("com.pixcaelium.sysinfo.BuildConfig")
+                    .getField("CAMERAX_VERSION").get(null);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String nativeNdkVersion() {
+        // NDK-Bibliothek liest ihre eigene Build-Info nicht; wir melden die NDK-Revision,
+        // mit der gebaut wurde (aus build.gradle), plus Live-Verfuegbarkeit:
+        try {
+            NativeCameraProbe.nativeCameraReport();
+            return "verfuegbar (libsysinfo_ndk_probe, NDK r26b)";
+        } catch (UnsatisfiedLinkError e) {
+            return "nicht verfuegbar (" + e.getMessage() + ")";
         }
     }
 
