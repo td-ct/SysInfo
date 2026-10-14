@@ -4,6 +4,7 @@
     <uses-feature android:name="android.hardware.camera.any" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:label="SysInfo PixCaelium"
@@ -19,5 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".SplashActivity" android:exported="false" />
+        <activity android:name=".NdkInfoActivity" android:exported="false" />
     </application>
 </manifest>

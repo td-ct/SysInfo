@@ -28,3 +28,39 @@ unter der logischen Rückkamera meldet (mit `CFA=MONO` bzw. Capability `DEPTH_OU
 Tiefe gibt es in Drittanbieter-Apps nur über die **Tiefen-USB/Halbprofi-API** (unsupported) oder
 indirekt über die **Google Depth API** (`DEPTH16`-Daten im JPEG-XMP-Blob der Hauptkamera, wenn
 `REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT` vorhanden) bzw. **ARCore Depth** (stereo/bewegungsbasiert).
+
+## v1.1
+- **Selfie-Kamera-Umschaltung** (Button wechselt Front <-> Rück, Zoom-Range wird je Kamera neu gelesen)
+- Weitwinkel-Button: klare Meldung, falls nicht verfügbar (statt wirkungslosem Druck)
+- Diagnose erweitert: `[LOGICAL_MULTI_CAMERA]`/`[DEPTH_OUTPUT]`-Marker, `getConcurrentCameraIds()`
+
+## Diagnose-Ergebnis Moto G86 5G (Android 15)
+- zoomRange=[1.0, 10.0], physical=[], kein LOGICAL_MULTI_CAMERA
+- => Ultraweitwinkel (8 MP) ist für Dritt-Apps **nicht erreichbar** (weder Zoom<1.0 noch physische ID);
+   Motorola expose ihn nicht. Tiefensensor ebenfalls API-invisible (kein DEPTH_OUTPUT).
+
+## v1.2
+- **Menü oben rechts** (Overflow-Button):
+  - **Über** (erster Eintrag): Splash-Screen mit Version + GitHub-Link
+  - **Kamera-API** (Untermenü, umschaltbar, mit Häkchen):
+    - *CameraX (Standard)* — bisherige Vorschau/Aufnahme
+    - *Camera2 direkt (Java)* — eigene Preview-Pipeline ohne CameraX
+    - *Native/NDK-Sicht (Info)* — Ansicht, die live zeigt, dass die C++-NDK-
+      API dieselben IDs/Capabilities sieht (beide fragen denselben
+      Camera-Service ab; am G86 identisch: kein UW, keine physischen IDs)
+  - **Update** (letzter Eintrag): gleiche Logik wie TrailCam/Breakout —
+    GitHub-API-Abgleich der `releases/`-APKs mit installierter Version,
+    Download-Link bzw. Play-Store-Weiterleitung bei Play-Installation
+- API-Badge oben in der Preview zeigt die aktive Anbindung
+
+## v1.3
+- **Echte native Kamera-API integriert**: C++-Bibliothek `libsysinfo_ndk_probe`
+  (Camera2-NDK, ACameraManager) über JNI — die „Native/NDK"-Menüoption führt
+  jetzt eine **wirkliche native Abfrage** durch (nicht nur Java-Referenz) und
+  zeigt beide Ergebnisse direkt untereinander zum Vergleich
+- **API-Namen und -Versionen als Überschriften im Diagnose-Log**:
+  Android-Version/API-Level, Gerät, CameraX-Version (aus BuildConfig),
+  Camera2-Java (Plattform-API), Camera2-NDK (C++, NDK r26b + Live-Verfügbarkeit),
+  aktiver Modus — gefolgt vom Kamera-Abschnitt je ID
+- Umschaltung CameraX ↔ Camera2-Java bleibt echte Preview-Pipeline-Umschaltung;
+  NDK-Modus nutzt die native lib für die Geräteabfrage

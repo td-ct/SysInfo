@@ -10,6 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <TextureView
+        android:id="@+id/cam2TextureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible" />
+
     <ScrollView
         android:id="@+id/diagScroll"
         android:layout_width="match_parent"
@@ -39,6 +45,16 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <ImageButton
+        android:id="@+id/btnMenu"
+        style="?android:attr/actionOverflowButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:contentDescription="Menü"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <Button
         android:id="@+id/btnCapture"
         android:text="Foto"
@@ -46,7 +62,19 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/btnMenu" />
+
+    <TextView
+        android:id="@+id/apiBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#AA000000"
+        android:padding="4dp"
+        android:text="API: CameraX"
+        android:textColor="#FF7FD4FF"
+        android:textSize="11sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnDiagnose" />
 
     <SeekBar
         android:id="@+id/zoomBar"
@@ -64,6 +92,15 @@
         android:layout_margin="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnSelfie"
+        android:text="Selfie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMain" />
 
     <Button
         android:id="@+id/btnMain"
