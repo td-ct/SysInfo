@@ -1,0 +1,69 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.pixcaelium.sysinfo'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.pixcaelium.sysinfo"
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            // Standard: Keystore/Passwoerter via CI_KEYSTORE_FILE bzw. -Pandroid.injected.*
+            // Lokaler Fallback: /workspace/sysinfo-release.jks (Test-Keystore)
+            def ks = providers.environmentVariable("CI_KEYSTORE_FILE").orElse(
+                providers.gradleProperty("android.injected.signing.store.file"))
+            if (ks.isPresent()) {
+                storeFile file(ks.get())
+                storePassword providers.gradleProperty("android.injected.signing.store.password").getOrElse("")
+                keyAlias providers.gradleProperty("android.injected.signing.key.alias").getOrElse("")
+                keyPassword providers.gradleProperty("android.injected.signing.key.password").getOrElse("")
+            } else {
+                storeFile file("/workspace/sysinfo-release.jks")
+                storePassword "pixcaelium"
+                keyAlias "pixcaelium"
+                keyPassword "pixcaelium"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.camera:camera-core:1.3.4'
+    implementation 'androidx.camera:camera-camera2:1.3.4'
+    implementation 'androidx.camera:camera-lifecycle:1.3.4'
+    implementation 'androidx.camera:camera-view:1.3.4'
+
+    constraints {
+        implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22') {
+            because 'kotlin-stdlib 1.8.x vereinigt jdk7/jdk8-Artefakte'
+        }
+        implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22') {
+            because 'kotlin-stdlib 1.8.x vereinigt jdk7/jdk8-Artefakte'
+        }
+    }
+}

@@ -1,0 +1,30 @@
+# SysInfo PixCaelium
+
+Kamera-Diagnose- und Kamera-App (Java / CameraX) – entwickelt für das Motorola Moto G86 5G,
+läuft aber auf jedem Gerät ab Android 10 (API 29).
+
+## Funktionen
+- **Diagnose**: listet alle Kamera-IDs mit Facing, Capabilities, Zoom-Range, physischen IDs
+  (Multi-Camera), CFA-Layout (RGB vs. MONO/NIR = Tiefen-/IR-Sensor) und Brennweiten –
+  im Panel und in Logcat (Tag `PixCaelium`).
+- **Weitwinkel über Zoom**: Button 0.6x nutzt `CONTROL_ZOOM_RANGE` (minZoom) der logischen Kamera;
+  am G86 schaltet Motorola darunter auf den 8-MP-Ultraweitwinkel um.
+- **Zoom-SeekBar**: stufenlos zwischen minZoom und maxZoom.
+- **Foto-Aufnahme**: JPEG via CameraX `ImageCapture` nach
+  `Android/data/com.pixcaelium.sysinfo/files/Bilder/`.
+
+## Build
+```bash
+./gradlew assembleRelease   # -> app/build/outputs/apk/release/
+./gradlew bundleRelease     # -> app/build/outputs/bundle/release/
+```
+Keystore: `keystore.jks` (Test-Keystore, Alias/Passwort `pixcaelium`) – für Play-Upload durch
+eigenen Keystore ersetzen.
+
+## Tiefensensor-Hinweis (Moto G86)
+Das „dritte Modul" ist ein 2-MP-Tiefensensor (DEPTH_ONLY). Er liefert keine RGB-Bilder und ist für
+Drittanbieter nicht direkt öffnbar. Die Diagnose zeigt ihn nur, falls Motorola ihn als physische ID
+unter der logischen Rückkamera meldet (mit `CFA=MONO` bzw. Capability `DEPTH_OUTPUT`/`DEPTH_ISO`).
+Tiefe gibt es in Drittanbieter-Apps nur über die **Tiefen-USB/Halbprofi-API** (unsupported) oder
+indirekt über die **Google Depth API** (`DEPTH16`-Daten im JPEG-XMP-Blob der Hauptkamera, wenn
+`REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT` vorhanden) bzw. **ARCore Depth** (stereo/bewegungsbasiert).
